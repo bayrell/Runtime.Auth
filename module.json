@@ -1,0 +1,29 @@
+{
+	"name": "Runtime.Auth",
+	"assets":
+	[
+		"ModuleDescription.bay"
+	],
+	"require": [
+	],
+	"groups": [
+	],
+	"modules":
+	[
+	],
+	"src": "./bay",
+	"dest":
+	{
+		"php": "./php",
+		"es6": "./es6"
+	},
+	"allow":
+	[
+		"\\.bay$",
+		"\\.php$",
+		"\\.js$"
+	],
+	"exclude":
+	[
+	]
+}
