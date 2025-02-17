@@ -1,0 +1,120 @@
+/*!
+ *  BayLang Technology
+ *
+ *  (c) Copyright 2016-2025 "Ildar Bikmamatov" <support@bayrell.org>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+namespace Runtime.Auth.Service;
+
+use Runtime.BaseObject;
+use Runtime.Callback;
+use Runtime.DateTime;
+use Runtime.Auth.Components.UserSettings;
+use Runtime.Auth.Database.User;
+use Runtime.Crypt.JWT;
+use Runtime.Exceptions.ApiError;
+use Runtime.Exceptions.RuntimeException;
+use Runtime.ORM.Connection;
+use Runtime.ORM.Query;
+use Runtime.Widget.Crud.Rules.BaseRule;
+use Runtime.Widget.Crud.Rules.Required;
+
+
+class UserService extends BaseObject
+{
+	UserSettings settings = null;
+	
+	
+	/**
+	 * Constructor
+	 */
+	void constructor(UserSettings settings)
+	{
+		parent();
+		this.settings = settings;
+	}
+	
+	
+	/**
+	 * Returns login rules
+	 */
+	Vector<BaseRule> getLoginRules() =>
+	[
+		new Required{"name": "login"},
+		new Required{"name": "password"},
+	];
+	
+	
+	/**
+	 * Login error
+	 */
+	void loginError()
+	{
+		throw new ApiError(new RuntimeException("Unknown login or password"));
+	}
+	
+	
+	/**
+	 * Returns JWT data
+	 */
+	Dict getUserData(User user) =>
+	{
+		"id": user.get("id"),
+		"user": user.get("login"),
+		"expires": DateTime::create().getTimeStamp() + this.settings.token_expires,
+		"session": "",
+	};
+	
+	
+	/**
+	 * Login user
+	 */
+	async void login(string login, string password)
+	{
+		Connection connection = Connection::get();
+		
+		/* Find user */
+		Callback findUser = new Callback(this.settings.getRelationName(), "findUser");
+		User user = await findUser.apply([connection, login]);
+		if (not user)
+		{
+			this.loginError();
+		}
+		
+		/* Check password */
+		if (not user.checkPassword(password))
+		{
+			this.loginError();
+		}
+		
+		/* Get JWT settings */
+		string token_name = this.settings.token_name;
+		string jwt_algo = @.env(token_name ~ "_jwt_algo");
+		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
+		
+		/* Create JWT */
+		Dict data = this.getUserData(user);
+		JWT jwt = JWT::encode(data, jwt_secret_key, jwt_algo ? jwt_algo : "HS256");
+		
+		/* Check token */
+		if (not jwt.isCorrect())
+		{
+			this.loginError();
+		}
+		
+		/* Returns token */
+		return jwt;
+	}
+}

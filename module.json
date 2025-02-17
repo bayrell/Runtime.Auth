@@ -2,11 +2,18 @@
 	"name": "Runtime.Auth",
 	"assets":
 	[
+		"Components/LoginPage/LoginPage.bay",
+		"Components/LoginPage/LoginPageModel.bay",
+		"Components/UserSettings.bay",
 		"ModuleDescription.bay"
 	],
-	"require": [
+	"require":
+	[
+		"Runtime.Web"
 	],
-	"groups": [
+	"groups":
+	[
+		"runtime"
 	],
 	"modules":
 	[

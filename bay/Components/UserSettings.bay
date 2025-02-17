@@ -1,7 +1,7 @@
 /*!
  *  BayLang Technology
  *
- *  (c) Copyright 2016-2024 "Ildar Bikmamatov" <support@bayrell.org>
+ *  (c) Copyright 2016-2025 "Ildar Bikmamatov" <support@bayrell.org>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,44 +16,25 @@
  *  limitations under the License.
  */
 
-namespace Runtime.Auth;
+namespace Runtime.Auth.Components;
+
+use Runtime.BaseStruct;
+use Runtime.Auth.Database.User;
 
 
-static class ModuleDescription
+struct UserSettings extends BaseStruct
 {
-	/**
-	 * Returns module name
-	 * @return string
-	 */
-	public static string getModuleName()
-	{
-		return "Runtime.Auth";
-	}
+	string api_name = "";
+	string token_name = "";
+	int token_expires = 30 * 24 * 60 * 60;
 	
+	
+	#ifdef BACKEND then
 	
 	/**
-	 * Returns module name
-	 * @return string
+	 * Returns user relation name
 	 */
-	public static string getModuleVersion()
-	{
-		return "0.12.0";
-	}
+	string getRelationName() => classof User;
 	
-	
-	/**
-	 * Returns required modules
-	 * @return Map<string>
-	 */
-	pure Map<string> requiredModules() =>
-	{
-	};
-	
-	
-	/**
-	 * Returns enities
-	 */
-	pure Collection<Dict> entities() =>
-	[
-	];
+	#endif
 }
