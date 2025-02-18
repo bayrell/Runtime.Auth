@@ -1,0 +1,133 @@
+/*!
+ *  BayLang Technology
+ *
+ *  (c) Copyright 2016-2024 "Ildar Bikmamatov" <support@bayrell.org>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+namespace Runtime.Auth.Hook;
+
+use Runtime.Auth.Api.LoginApi;
+use Runtime.Auth.Components.UserSettings;
+use Runtime.Crypt.JWT;
+use Runtime.Web.Annotations.Api;
+use Runtime.Web.Hooks.AppHook as BaseAppHook;
+use Runtime.Web.RenderContainer;
+use Runtime.Web.RouteList;
+use Runtime.Web.RouteModel;
+
+
+class AuthHook extends BaseAppHook
+{
+	UserSettings settings = null;
+	
+	
+	/**
+	 * Setup hook params
+	 */
+	void setup(Dict params)
+	{
+		parent(params);
+		
+		if (params == null) return;
+		if (params.has("settings")) this.settings = params.get("settings");
+	}
+	
+	
+	/**
+	 * Register hooks
+	 */
+	void register_hooks()
+	{
+		#ifdef BACKEND then
+		this.register(static::FIND_API);
+		this.register(static::ROUTE_BEFORE);
+		this.register(static::ROUTES_INIT);
+		#endif
+	}
+	
+	
+	#ifdef BACKEND then
+	
+	/**
+	 * Find api
+	 */
+	void find_api(Map params)
+	{
+		string api_name = params.get("api_name");
+		Api annotation = params.get("annotation");
+		if (annotation) return;
+		
+		Api annotation = new Api(classof LoginApi, {
+			"settings": this.settings,
+		});
+		params.set("annotation", annotation);
+	}
+	
+	
+	/**
+	 * Routes init
+	 */
+	async void routes_init(Map params)
+	{
+		RouteList routes = params.get("routes");
+		
+		/* Add login */
+		if (not routes.hasRoute(this.settings.getParam("login.name")))
+		{
+			routes.addRoute(new RouteModel{
+				"uri": this.settings.getParam("login.uri"),
+				"name": this.settings.getParam("login.name"),
+				"layout": this.settings.getParam("login.layout"),
+				"model": this.settings.getParam("login.model"),
+			});
+		}
+		
+		/* Add logout */
+		if (not routes.hasRoute(this.settings.getParam("logout.name")))
+		{
+			routes.addRoute(new RouteModel{
+				"uri": this.settings.getParam("logout.uri"),
+				"name": this.settings.getParam("logout.name"),
+				"layout": this.settings.getParam("logout.layout"),
+				"model": this.settings.getParam("logout.model"),
+			});
+		}
+	}
+	
+	
+	/**
+	 * Route before
+	 */
+	async void route_before(Map params)
+	{
+		RenderContainer container = params.get("container");
+		string token_name = this.settings.get("token_name");
+		string jwt_algo = @.env(token_name ~ "_jwt_algo");
+		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
+		string jwt_string = container.request.cookies.get(token_name);
+		
+		/* Decode JWT */
+		JWT jwt = JWT::decode(jwt_string, jwt_secret_key);
+		if (jwt and jwt.isCorrect())
+		{
+			container.layout.storage.params.set(token_name, {
+				"data": jwt.data,
+				"token": jwt.token,
+			});
+		}
+	}
+	
+	#endif
+}

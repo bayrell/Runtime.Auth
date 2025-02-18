@@ -4,7 +4,10 @@
 	[
 		"Components/LoginPage/LoginPage.bay",
 		"Components/LoginPage/LoginPageModel.bay",
+		"Components/LogoutPage/LogoutPage.bay",
+		"Components/LogoutPage/LogoutPageModel.bay",
 		"Components/UserSettings.bay",
+		"Hook/AuthHook.bay",
 		"ModuleDescription.bay"
 	],
 	"require":

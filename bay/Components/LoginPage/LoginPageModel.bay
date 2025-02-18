@@ -18,13 +18,16 @@
 
 namespace Runtime.Auth.Components.LoginPage;
 
+use Runtime.Callback;
 use Runtime.Serializer;
 use Runtime.Entity.Factory;
 use Runtime.Auth.Components.LoginPage.LoginPage;
 use Runtime.Auth.Components.UserSettings;
 use Runtime.Web.BasePageModel;
+use Runtime.Web.RedirectResponse;
 use Runtime.Web.RenderContainer;
 use Runtime.Widget.Input;
+use Runtime.Widget.Form.FormMessage;
 use Runtime.Widget.Form.FormSubmitModel;
 
 
@@ -96,7 +99,39 @@ class LoginPageModel extends BasePageModel
 					"text": "Login",
 					"styles": ["primary", "stretch"],
 				},
+				"events":
+				{
+					"submit": new Callback(this, "onSubmit"),
+				},
 			}
 		);
+	}
+	
+	
+	/**
+	 * Submit
+	 */
+	async void onSubmit(FormMessage message)
+	{
+		if (message.result.isSuccess())
+		{
+			string redirect_url = this.user_settings.getMainPage(this.layout);
+			document.location = redirect_url;
+		}
+	}
+	
+	
+	/**
+	 * Load data
+	 */
+	void loadData(RenderContainer container)
+	{
+		Dict jwt = this.layout.storage.params.get(this.user_settings.token_name);
+		if (jwt == null) return;
+		
+		/* Redirect to main page if user is login */
+		int redirect_code = 302;
+		string redirect_url = this.user_settings.getMainPage(this.layout);
+		container.setResponse(new RedirectResponse(redirect_url, redirect_code));
 	}
 }

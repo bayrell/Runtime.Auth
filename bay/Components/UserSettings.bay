@@ -19,7 +19,13 @@
 namespace Runtime.Auth.Components;
 
 use Runtime.BaseStruct;
+use Runtime.Entity.Factory;
+use Runtime.Entity.Hook;
+use Runtime.Auth.Components.LoginPage.LoginPageModel;
+use Runtime.Auth.Components.LogoutPage.LogoutPageModel;
 use Runtime.Auth.Database.User;
+use Runtime.Auth.Hook.AuthHook;
+use Runtime.Web.BaseLayoutModel;
 
 
 struct UserSettings extends BaseStruct
@@ -27,6 +33,56 @@ struct UserSettings extends BaseStruct
 	string api_name = "";
 	string token_name = "";
 	int token_expires = 30 * 24 * 60 * 60;
+	
+	
+	/**
+	 * Create hook
+	 */
+	static Hook register() => new Hook(
+		classof AuthHook,
+		{
+			"settings": rtl::newInstance(static::getClassName()),
+		}
+	);
+	
+	
+	/**
+	 * Returns main page
+	 */
+	string getMainPage(BaseLayoutModel layout) => "";
+	
+	
+	/**
+	 * Returns routes
+	 */
+	string getParam(string name)
+	{
+		/* Login settings */
+		if (name == "login.uri") return "/login";
+		if (name == "login.name") return "app:login";
+		if (name == "login.layout") return "clear";
+		if (name == "login.model.name") return classof LoginPageModel;
+		if (name == "login.model") return new Factory
+		(
+			this.getParam("login.model.name"),
+			{
+				"user_settings": this,
+			}
+		);
+		
+		/* Logout settings */
+		if (name == "logout.uri") return "/logout";
+		if (name == "logout.name") return "app:logout";
+		if (name == "logout.layout") return "clear";
+		if (name == "logout.model.name") return classof LogoutPageModel;
+		if (name == "logout.model") return new Factory
+		(
+			this.getParam("logout.model.name"),
+			{
+				"user_settings": this,
+			}
+		);
+	}
 	
 	
 	#ifdef BACKEND then

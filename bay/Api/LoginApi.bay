@@ -1,0 +1,102 @@
+/*!
+ *  BayLang Technology
+ *
+ *  (c) Copyright 2016-2025 "Ildar Bikmamatov" <support@bayrell.org>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+namespace Runtime.Auth.Api;
+
+use Runtime.Auth.Components.UserSettings;
+use Runtime.Auth.Service.UserService;
+use Runtime.Crypt.JWT;
+use Runtime.Web.BaseApi;
+use Runtime.Web.Cookie;
+use Runtime.Web.Annotations.ApiMethod;
+
+
+class LoginApi extends BaseApi
+{
+	UserSettings settings = null;
+	
+	
+	/**
+	 * Returns api name
+	 */
+	static string getApiName() => "";
+	
+	
+	/**
+	 * Setup params
+	 */
+	void setup(Dict params)
+	{
+		parent(params);
+		
+		if (params == null) return;
+		if (params.has("settings")) this.settings = params.get("settings");
+	}
+	
+	
+	/**
+	 * Returns service
+	 */
+	UserService createService() => new UserService(this.settings);
+	
+	
+	/**
+	 * Action login
+	 */
+	@ApiMethod
+	async void actionLogin()
+	{
+		UserService service = this.createService();
+		
+		string login = this.post_data["item", "login"];
+		string password = this.post_data["item", "password"];
+		JWT jwt = await service.login(login, password);
+		
+		/* Add cookie */
+		Cookie cookie = new Cookie{
+			"name": service.settings.token_name,
+			"expires": jwt.data.get("expires"),
+			"value": jwt.token,
+		};
+		this.result.addCookie(cookie);
+		
+		/* Set result */
+		this.success();
+	}
+	
+	
+	/**
+	 * Action logout
+	 */
+	@ApiMethod
+	async void actionLogout()
+	{
+		UserService service = this.createService();
+		
+		/* Clear cookie */
+		Cookie cookie = new Cookie{
+			"name": service.settings.token_name,
+			"expires": 0,
+			"value": "",
+		};
+		this.result.addCookie(cookie);
+		
+		/* Set result */
+		this.success();
+	}
+}
