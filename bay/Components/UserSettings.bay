@@ -38,12 +38,18 @@ struct UserSettings extends BaseStruct
 	/**
 	 * Create hook
 	 */
-	static Hook register() => new Hook(
+	static Hook create() => new Hook(
 		classof AuthHook,
 		{
 			"settings": rtl::newInstance(static::getClassName()),
 		}
 	);
+	
+	
+	/**
+	 * Get layout
+	 */
+	string getLayout() => "default";
 	
 	
 	/**
