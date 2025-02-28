@@ -73,7 +73,7 @@ class UserService extends BaseObject
 	{
 		"id": user.get("id"),
 		"user": user.get("login"),
-		"expires": DateTime::create().getTimeStamp() + this.settings.token_expires,
+		"expires": DateTime::create().getTimeStamp() + this.settings.getTokenExpires(),
 		"session": "",
 	};
 	
@@ -100,7 +100,7 @@ class UserService extends BaseObject
 		}
 		
 		/* Get JWT settings */
-		string token_name = this.settings.token_name;
+		string token_name = this.settings.getTokenName();
 		string jwt_algo = @.env(token_name ~ "_jwt_algo");
 		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
 		

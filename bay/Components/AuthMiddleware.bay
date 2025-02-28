@@ -47,7 +47,7 @@ class AuthMiddleware extends BaseMiddleware
 		if (container.layout == null) return;
 		
 		/* Get JWT */
-		Dict jwt = container.layout.storage.params.get(this.settings.token_name);
+		Dict jwt = container.layout.storage.params.get(this.settings.getTokenName());
 		if (jwt != null) return;
 		
 		/* Setup new layout */

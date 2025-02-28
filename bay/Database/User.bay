@@ -44,7 +44,7 @@ class User extends Relation
 	/**
 	 * Returns table schema
 	 */
-	pure memorize Collection<BaseStruct> schema() =>
+	pure Collection<BaseStruct> schema() =>
 	[
 		/* Fields */
 		new BigIntType{"name": "id"},

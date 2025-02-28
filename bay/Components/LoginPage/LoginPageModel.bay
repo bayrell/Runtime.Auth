@@ -46,7 +46,16 @@ class LoginPageModel extends BasePageModel
 		parent(params);
 		
 		if (params == null) return;
-		if (params.has("user_settings")) this.user_settings = params.get("user_settings");
+		if (params.has("user_settings"))
+		{
+			this.user_settings = params.get("user_settings");
+			if (this.user_settings instanceof Map)
+			{
+				Serializer serializer = new Serializer();
+				serializer.setFlag(Serializer::ALLOW_OBJECTS);
+				this.user_settings = serializer.decodeObject(this.user_settings);
+			}
+		}
 	}
 	
 	
@@ -55,7 +64,10 @@ class LoginPageModel extends BasePageModel
 	 */
 	void serialize(Serializer serializer, Map data)
 	{
-		serializer.process(this, "user_settings", data);
+		if (serializer.isEncode())
+		{
+			serializer.process(this, "user_settings", data);
+		}
 		parent(serializer, data);
 	}
 	
@@ -76,7 +88,7 @@ class LoginPageModel extends BasePageModel
 				(
 					"Runtime.Widget.Form.FormSubmitStorage",
 					{
-						"api_name": this.user_settings.get("api_name"),
+						"api_name": this.user_settings.getApiName(),
 						"method_name": "actionLogin",
 					}
 				),

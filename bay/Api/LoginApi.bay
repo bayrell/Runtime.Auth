@@ -69,7 +69,7 @@ class LoginApi extends BaseApi
 		
 		/* Add cookie */
 		Cookie cookie = new Cookie{
-			"name": service.settings.token_name,
+			"name": service.settings.getTokenName(),
 			"expires": jwt.data.get("expires"),
 			"value": jwt.token,
 		};
@@ -90,7 +90,7 @@ class LoginApi extends BaseApi
 		
 		/* Clear cookie */
 		Cookie cookie = new Cookie{
-			"name": service.settings.token_name,
+			"name": service.settings.getTokenName(),
 			"expires": 0,
 			"value": "",
 		};

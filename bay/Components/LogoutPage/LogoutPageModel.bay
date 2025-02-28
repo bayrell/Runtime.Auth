@@ -41,7 +41,16 @@ class LogoutPageModel extends BasePageModel
 		parent(params);
 		
 		if (params == null) return;
-		if (params.has("user_settings")) this.user_settings = params.get("user_settings");
+		if (params.has("user_settings"))
+		{
+			this.user_settings = params.get("user_settings");
+			if (this.user_settings instanceof Map)
+			{
+				Serializer serializer = new Serializer();
+				serializer.setFlag(Serializer::ALLOW_OBJECTS);
+				this.user_settings = serializer.decodeObject(this.user_settings);
+			}
+		}
 	}
 	
 	
@@ -50,7 +59,10 @@ class LogoutPageModel extends BasePageModel
 	 */
 	void serialize(Serializer serializer, Map data)
 	{
-		serializer.process(this, "user_settings", data);
+		if (serializer.isEncode())
+		{
+			serializer.process(this, "user_settings", data);
+		}
 		parent(serializer, data);
 	}
 	
@@ -80,7 +92,7 @@ class LogoutPageModel extends BasePageModel
 		this.result.setWaitMessage();
 		ApiResult result = await this.layout.callApi
 		{
-			"api_name": this.user_settings.get("api_name"),
+			"api_name": this.user_settings.getApiName(),
 			"method_name": "actionLogout",
 		};
 		this.result.setApiResult(result);

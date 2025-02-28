@@ -69,10 +69,14 @@ class AuthHook extends BaseAppHook
 		Api annotation = params.get("annotation");
 		if (annotation) return;
 		
-		Api annotation = new Api(classof LoginApi, {
-			"settings": this.settings,
-		});
-		params.set("annotation", annotation);
+		/* Setup login api */
+		if (api_name == this.settings.getApiName())
+		{
+			Api annotation = new Api(classof LoginApi, {
+				"settings": this.settings,
+			});
+			params.set("annotation", annotation);
+		}
 	}
 	
 	
@@ -86,23 +90,13 @@ class AuthHook extends BaseAppHook
 		/* Add login */
 		if (not routes.hasRoute(this.settings.getParam("login.name")))
 		{
-			routes.addRoute(new RouteModel{
-				"uri": this.settings.getParam("login.uri"),
-				"name": this.settings.getParam("login.name"),
-				"layout": this.settings.getParam("login.layout"),
-				"model": this.settings.getParam("login.model"),
-			});
+			routes.addRoute(this.settings.createRoute("login"));
 		}
 		
 		/* Add logout */
 		if (not routes.hasRoute(this.settings.getParam("logout.name")))
 		{
-			routes.addRoute(new RouteModel{
-				"uri": this.settings.getParam("logout.uri"),
-				"name": this.settings.getParam("logout.name"),
-				"layout": this.settings.getParam("logout.layout"),
-				"model": this.settings.getParam("logout.model"),
-			});
+			routes.addRoute(this.settings.createRoute("logout"));
 		}
 	}
 	
@@ -113,7 +107,7 @@ class AuthHook extends BaseAppHook
 	async void route_before(Map params)
 	{
 		RenderContainer container = params.get("container");
-		string token_name = this.settings.get("token_name");
+		string token_name = this.settings.getTokenName();
 		string jwt_algo = @.env(token_name ~ "_jwt_algo");
 		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
 		string jwt_string = container.request.cookies.get(token_name);

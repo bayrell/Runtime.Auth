@@ -26,13 +26,28 @@ use Runtime.Auth.Components.LogoutPage.LogoutPageModel;
 use Runtime.Auth.Database.User;
 use Runtime.Auth.Hook.AuthHook;
 use Runtime.Web.BaseLayoutModel;
+use Runtime.Web.RouteInfo;
+use Runtime.Web.RouteModel;
 
 
 struct UserSettings extends BaseStruct
 {
-	string api_name = "";
-	string token_name = "";
-	int token_expires = 30 * 24 * 60 * 60;
+	/**
+	 * Returns api name
+	 */
+	string getApiName() => "";
+	
+	
+	/**
+	 * Returns token name
+	 */
+	string getTokenName() => "";
+	
+	
+	/**
+	 * Returns token expires
+	 */
+	string getTokenExpires() => 30 * 24 * 60 * 60;
 	
 	
 	/**
@@ -88,6 +103,35 @@ struct UserSettings extends BaseStruct
 				"user_settings": this,
 			}
 		);
+	}
+	
+	
+	/**
+	 * Create route
+	 */
+	RouteInfo createRoute(string action)
+	{
+		if (action == "login")
+		{
+			return new RouteModel
+			{
+				"uri": this.getParam("login.uri"),
+				"name": this.getParam("login.name"),
+				"layout": this.getParam("login.layout"),
+				"model": this.getParam("login.model"),
+			}
+		}
+		if (action == "logout")
+		{
+			return new RouteModel
+			{
+				"uri": this.getParam("logout.uri"),
+				"name": this.getParam("logout.name"),
+				"layout": this.getParam("logout.layout"),
+				"model": this.getParam("logout.model"),
+			}
+		}
+		return null;
 	}
 	
 	
