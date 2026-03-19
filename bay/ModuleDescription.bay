@@ -1,7 +1,7 @@
 /*!
  *  BayLang Technology
  *
- *  (c) Copyright 2016-2024 "Ildar Bikmamatov" <support@bayrell.org>
+ *  (c) Copyright 2016-2025 "Ildar Bikmamatov" <support@bayrell.org>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,8 +18,14 @@
 
 namespace Runtime.Auth;
 
+use Runtime.Entity.Entity;
+use Runtime.ORM.Annotations.Migration;
+use Runtime.ORM.Annotations.Table;
+use Runtime.Auth.Database.Migrations.AuthMigration;
+use Runtime.Auth.Database.User;
 
-static class ModuleDescription
+
+class ModuleDescription
 {
 	/**
 	 * Returns module name
@@ -37,7 +43,7 @@ static class ModuleDescription
 	 */
 	public static string getModuleVersion()
 	{
-		return "0.12.0";
+		return "1.0.0";
 	}
 	
 	
@@ -53,7 +59,7 @@ static class ModuleDescription
 	/**
 	 * Returns enities
 	 */
-	pure Collection<Dict> entities() =>
+	pure Collection<Entity> entities() =>
 	[
 	];
 }

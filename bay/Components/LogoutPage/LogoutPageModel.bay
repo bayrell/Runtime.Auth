@@ -18,19 +18,32 @@
 
 namespace Runtime.Auth.Components.LogoutPage;
 
-use Runtime.Serializer;
+use Runtime.BaseModel;
+use Runtime.Serializer.ObjectType;
 use Runtime.Auth.Components.LogoutPage.LogoutPage;
-use Runtime.Auth.Components.UserSettings;
+use Runtime.Auth.Models.UserSettings;
 use Runtime.Web.ApiResult;
-use Runtime.Web.BasePageModel;
-use Runtime.Widget.WidgetResultModel;
+use Runtime.Widget.ResultModel;
 
 
-class LogoutPageModel extends BasePageModel
+class LogoutPageModel extends BaseModel
 {
 	string component = classof LogoutPage;
 	UserSettings user_settings = null;
-	WidgetResultModel result = null;
+	ResultModel result = null;
+	
+	
+	/**
+	 * Process frontend data
+	 */
+	static void serialize(ObjectType rules)
+	{
+		parent(rules);
+		rules.addType("user_settings", new ObjectType{
+			"autocreate": true,
+			"class_extends": classof UserSettings,
+		});
+	}
 	
 	
 	/**
@@ -46,24 +59,9 @@ class LogoutPageModel extends BasePageModel
 			this.user_settings = params.get("user_settings");
 			if (this.user_settings instanceof Map)
 			{
-				Serializer serializer = new Serializer();
-				serializer.setFlag(Serializer::ALLOW_OBJECTS);
-				this.user_settings = serializer.decodeObject(this.user_settings);
+				this.user_settings = this.filter("user_settings", this.user_settings);
 			}
 		}
-	}
-	
-	
-	/**
-	 * Process frontend data
-	 */
-	void serialize(Serializer serializer, Map data)
-	{
-		if (serializer.isEncode())
-		{
-			serializer.process(this, "user_settings", data);
-		}
-		parent(serializer, data);
 	}
 	
 	
@@ -74,8 +72,8 @@ class LogoutPageModel extends BasePageModel
 	{
 		parent(params);
 		
-		this.result = this.addWidget(
-			classof WidgetResultModel,
+		this.result = this.createWidget(
+			classof ResultModel,
 			{
 				"widget_name": "result",
 				"styles": ["margin_top"],
@@ -90,17 +88,18 @@ class LogoutPageModel extends BasePageModel
 	async void logout()
 	{
 		this.result.setWaitMessage();
-		ApiResult result = await this.layout.callApi
+		ApiResult result = await this.layout.sendApi(
 		{
 			"api_name": this.user_settings.getApiName(),
-			"method_name": "actionLogout",
-		};
+			"method_name": "logout",
+		});
 		this.result.setApiResult(result);
 		
 		/* If success */
 		if (result.isSuccess())
 		{
 			string redirect_url = this.user_settings.getMainPage(this.layout);
+			if (redirect_url == "") redirect_url = "/";
 			document.location = redirect_url;
 		}
 	}

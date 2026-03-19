@@ -18,12 +18,10 @@
 
 namespace Runtime.Auth.Components.LoginPage;
 
-use Runtime.Callback;
-use Runtime.Serializer;
-use Runtime.Entity.Factory;
+use Runtime.BaseModel;
+use Runtime.Serializer.ObjectType;
 use Runtime.Auth.Components.LoginPage.LoginPage;
-use Runtime.Auth.Components.UserSettings;
-use Runtime.Web.BasePageModel;
+use Runtime.Auth.Models.UserSettings;
 use Runtime.Web.RedirectResponse;
 use Runtime.Web.RenderContainer;
 use Runtime.Widget.Input;
@@ -31,11 +29,24 @@ use Runtime.Widget.Form.FormMessage;
 use Runtime.Widget.Form.FormSubmitModel;
 
 
-class LoginPageModel extends BasePageModel
+class LoginPageModel extends BaseModel
 {
 	string component = classof LoginPage;
 	UserSettings user_settings = null;
 	FormSubmitModel login_form = null;
+	
+	
+	/**
+	 * Process frontend data
+	 */
+	static void serialize(ObjectType rules)
+	{
+		parent(rules);
+		rules.addType("user_settings", new ObjectType{
+			"autocreate": true,
+			"class_extends": classof UserSettings,
+		});
+	}
 	
 	
 	/**
@@ -51,24 +62,9 @@ class LoginPageModel extends BasePageModel
 			this.user_settings = params.get("user_settings");
 			if (this.user_settings instanceof Map)
 			{
-				Serializer serializer = new Serializer();
-				serializer.setFlag(Serializer::ALLOW_OBJECTS);
-				this.user_settings = serializer.decodeObject(this.user_settings);
+				this.user_settings = this.filter("user_settings", this.user_settings);
 			}
 		}
-	}
-	
-	
-	/**
-	 * Process frontend data
-	 */
-	void serialize(Serializer serializer, Map data)
-	{
-		if (serializer.isEncode())
-		{
-			serializer.process(this, "user_settings", data);
-		}
-		parent(serializer, data);
 	}
 	
 	
@@ -80,18 +76,11 @@ class LoginPageModel extends BasePageModel
 		parent(params);
 		
 		/* Add login form */
-		this.login_form = this.addWidget(
+		this.login_form = this.createWidget(
 			classof FormSubmitModel,
 			{
-				"widget_name": "login_form",
-				"storage": new Factory
-				(
-					"Runtime.Widget.Form.FormSubmitStorage",
-					{
-						"api_name": this.user_settings.getApiName(),
-						"method_name": "actionLogin",
-					}
-				),
+				"api_name": this.user_settings.getApiName(),
+				"method_name": "login",
 				"fields": [
 					{
 						"name": "login",
@@ -113,7 +102,7 @@ class LoginPageModel extends BasePageModel
 				},
 				"events":
 				{
-					"submit": new Callback(this, "onSubmit"),
+					"submit": method this.onSubmit,
 				},
 			}
 		);
@@ -138,12 +127,13 @@ class LoginPageModel extends BasePageModel
 	 */
 	void loadData(RenderContainer container)
 	{
-		Dict jwt = this.layout.storage.params.get(this.user_settings.token_name);
+		Dict jwt = this.layout.storage.backend.get(this.user_settings.getTokenName());
 		if (jwt == null) return;
 		
 		/* Redirect to main page if user is login */
 		int redirect_code = 302;
 		string redirect_url = this.user_settings.getMainPage(this.layout);
+		if (redirect_url == "") redirect_url = "/";
 		container.setResponse(new RedirectResponse(redirect_url, redirect_code));
 	}
 }

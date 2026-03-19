@@ -16,15 +16,18 @@
  *  limitations under the License.
  */
 
-namespace Runtime.Auth.Components;
+namespace Runtime.Auth;
 
+use Runtime.Exceptions.ApiError;
+use Runtime.Exceptions.RuntimeException;
 use Runtime.Auth.UserSettings;
 use Runtime.Auth.Components.LoginPage.LoginPageModel;
-use Runtime.Web.BaseMiddleware;
+use Runtime.Web.BaseApi;
+use Runtime.Web.Middleware;
 use Runtime.Web.RenderContainer;
 
 
-class AuthMiddleware extends BaseMiddleware
+class AuthMiddleware extends Middleware
 {
 	UserSettings settings = null;
 	
@@ -40,22 +43,37 @@ class AuthMiddleware extends BaseMiddleware
 	
 	
 	/**
-	 * Apply middleware
+	 * Run api
 	 */
-	async void apply(RenderContainer container)
+	async void api(BaseApi api)
 	{
-		if (container.layout == null) return;
-		
 		/* Get JWT */
-		Dict jwt = container.layout.storage.params.get(this.settings.getTokenName());
-		if (jwt != null) return;
-		
-		/* Setup new layout */
-		container.changeLayout(this.settings.getLayout());
-		
-		/* Render login page */
-		container.renderPageModel(classof LoginPageModel, {
-			"user_settings": this.settings,
-		});
+		Dict jwt = api.storage.get(this.settings.getTokenName());
+		if (jwt == null)
+		{
+			throw new ApiError(new RuntimeException("Action not allowed"));
+		}
+	}
+	
+	
+	/**
+	 * Run route
+	 */
+	async void route(RenderContainer container)
+	{
+		/* Get JWT */
+		Dict jwt = container.layout.storage.backend.get(this.settings.getTokenName());
+		if (jwt == null)
+		{
+			/* Render page */
+			container.changeLayout(this.settings.getLayout());
+			await container.renderPageModel(
+				this.settings.getLoginPage(),
+				this.settings.getModelParams()
+			);
+			
+			/* Create response */
+			container.createResponse();
+		}
 	}
 }

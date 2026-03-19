@@ -24,6 +24,7 @@ use Runtime.Crypt.Password;
 use Runtime.ORM.Connection;
 use Runtime.ORM.Query;
 use Runtime.ORM.QueryFilter;
+use Runtime.ORM.Record;
 use Runtime.ORM.Relation;
 use Runtime.ORM.Annotations.AutoIncrement;
 use Runtime.ORM.Annotations.BigIntType;
@@ -33,7 +34,7 @@ use Runtime.ORM.Annotations.Primary;
 use Runtime.ORM.Annotations.StringType;
 
 
-class User extends Relation
+class User extends Record
 {
 	/**
 	 * Returns table name
@@ -44,7 +45,7 @@ class User extends Relation
 	/**
 	 * Returns table schema
 	 */
-	pure Collection<BaseStruct> schema() =>
+	pure Vector<BaseObject> schema() =>
 	[
 		/* Fields */
 		new BigIntType{"name": "id"},
@@ -60,15 +61,25 @@ class User extends Relation
 	
 	
 	/**
+	 * Returns token data
+	 */
+	Map getTokenData() =>
+	{
+		"id": this.id,
+		"login": this.login,
+	};
+	
+	
+	/**
 	 * Save
 	 */
-	async void save(Connection connection, Dict params = null)
+	async void save()
 	{
 		if (this.get("gmtime_add") == null)
 		{
 			this.set("gmtime_add", DateTime::now());
 		}
-		await parent(connection, params);
+		await parent();
 	}
 	
 	
@@ -84,12 +95,16 @@ class User extends Relation
 	/**
 	 * Find user
 	 */
-	static async User findUser(Connection connection, string login)
+	static async User findUser(
+		string login, Relation<User> relation = null
+	)
 	{
-		User user = await static::findItem(connection, [
-			new QueryFilter("login", "=", login),
-			new QueryFilter("is_deleted", "=", 0)
-		]);
+		if (!relation) relation = new Relation(static::getClassName());
+		User user = await relation.fetchRecord(
+			relation.select()
+				.where("login", "=", login)
+				.where("is_deleted", "=", 0)
+		);
 		return user;
 	}
 }

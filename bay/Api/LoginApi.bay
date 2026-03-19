@@ -18,9 +18,16 @@
 
 namespace Runtime.Auth.Api;
 
-use Runtime.Auth.Components.UserSettings;
-use Runtime.Auth.Service.UserService;
+use Runtime.DateTime;
+use Runtime.Method;
+use Runtime.Exceptions.ApiError;
+use Runtime.Exceptions.RuntimeException;
+use Runtime.Auth.Database.User;
+use Runtime.Auth.Models.UserSettings;
 use Runtime.Crypt.JWT;
+use Runtime.Serializer.MapType;
+use Runtime.Serializer.Required;
+use Runtime.Serializer.StringType;
 use Runtime.Web.BaseApi;
 use Runtime.Web.Cookie;
 use Runtime.Web.Annotations.ApiMethod;
@@ -40,7 +47,7 @@ class LoginApi extends BaseApi
 	/**
 	 * Setup params
 	 */
-	void setup(Dict params)
+	void initParams(Map params)
 	{
 		parent(params);
 		
@@ -50,26 +57,36 @@ class LoginApi extends BaseApi
 	
 	
 	/**
-	 * Returns service
+	 * Returns data rules
 	 */
-	UserService createService() => new UserService(this.settings);
+	void getDataRules(MapType rules)
+	{
+		rules.addType("login", new Required());
+		rules.addType("login", new StringType());
+		rules.addType("password", new Required());
+		rules.addType("password", new StringType());
+	}
 	
 	
 	/**
 	 * Action login
 	 */
-	@ApiMethod
+	@ApiMethod{ "name": "login" }
 	async void actionLogin()
 	{
-		UserService service = this.createService();
+		this.filterData();
 		
-		string login = this.post_data["item", "login"];
-		string password = this.post_data["item", "password"];
-		JWT jwt = await service.login(login, password);
+		/* Get credentials */
+		string login = this.data.get("login");
+		string password = this.data.get("password");
+		
+		/* Login user */
+		JWT jwt = await this.login(login, password);
 		
 		/* Add cookie */
-		Cookie cookie = new Cookie{
-			"name": service.settings.getTokenName(),
+		Cookie cookie = new Cookie
+		{
+			"name": this.settings.getTokenName(),
 			"expires": jwt.data.get("expires"),
 			"value": jwt.token,
 		};
@@ -81,22 +98,61 @@ class LoginApi extends BaseApi
 	
 	
 	/**
-	 * Action logout
+	 * Login error
 	 */
-	@ApiMethod
-	async void actionLogout()
+	void loginError()
 	{
-		UserService service = this.createService();
+		throw new ApiError(new RuntimeException("Unknown login or password"));
+	}
+	
+	
+	/**
+	 * Login user
+	 */
+	async void login(string login, string password)
+	{
+		/* Find user */
+		string class_name = this.settings.getRecordName();
+		fn findUser = new Method(class_name, "findUser")
+		User user = await findUser.apply([login]);
+		if (not user)
+		{
+			this.loginError();
+		}
 		
-		/* Clear cookie */
-		Cookie cookie = new Cookie{
-			"name": service.settings.getTokenName(),
-			"expires": 0,
-			"value": "",
-		};
-		this.result.addCookie(cookie);
+		/* Check password */
+		if (not user.checkPassword(password))
+		{
+			this.loginError();
+		}
 		
-		/* Set result */
-		this.success();
+		/* Get JWT settings */
+		string token_name = this.settings.getTokenName();
+		string jwt_algo = @.env(token_name ~ "_jwt_algo");
+		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
+		
+		/* Create JWT */
+		Dict data = this.getUserData(user);
+		JWT jwt = JWT::encode(data, jwt_secret_key, jwt_algo ? jwt_algo : "HS256");
+		
+		/* Check token */
+		if (not jwt.isCorrect())
+		{
+			this.loginError();
+		}
+		
+		/* Returns token */
+		return jwt;
+	}
+	
+	
+	/**
+	 * Returns user data
+	 */
+	Map getUserData(User user)
+	{
+		Map data = user.getTokenData();
+		data.set("expires", DateTime::now().timestamp() + this.settings.getTokenExpires());
+		return data;
 	}
 }
