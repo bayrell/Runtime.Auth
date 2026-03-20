@@ -21,7 +21,8 @@ namespace Runtime.Auth.Hook;
 use Runtime.Method;
 use Runtime.Hooks.BaseHook;
 use Runtime.Auth.Api.LoginApi;
-use Runtime.Auth.Components.UserSettings;
+use Runtime.Auth.Models.Data;
+use Runtime.Auth.Models.UserSettings;
 use Runtime.Crypt.JWT;
 use Runtime.Web.Annotations.ApiMethod;
 use Runtime.Web.Hooks.AppHook;
@@ -153,6 +154,7 @@ class AuthHook extends BaseHook
 		if (jwt and jwt.isCorrect())
 		{
 			container.layout.storage.backend.set(token_name, jwt);
+			container.layout.storage.set(token_name, new Data(jwt.data));
 		}
 	}
 	

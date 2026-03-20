@@ -27,7 +27,7 @@ class AuthMigration extends BaseMigration
 	/**
 	 * Returns migration name
 	 */
-	string name = "runtime_cabinet";
+	string name = "auth_2026";
 	
 	
 	/**
@@ -67,6 +67,7 @@ class AuthMigration extends BaseMigration
 					`password` VARCHAR(255) NOT NULL DEFAULT '',
 					`is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
 					`gmtime_add` DATETIME NOT NULL,
+					`gmtime_edit` DATETIME NOT NULL,
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `login` (`login`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"

@@ -7,6 +7,7 @@
 		"Components/LogoutPage/LogoutPage.bay",
 		"Components/LogoutPage/LogoutPageModel.bay",
 		"Hook/AuthHook.bay",
+		"Models/Data.bay",
 		"Models/UserSettings.bay",
 		"ModuleDescription.bay"
 	],
