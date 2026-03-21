@@ -24,7 +24,7 @@ use Runtime.Serializer.MapType;
 use Runtime.Serializer.StringType;
 use Runtime.SerializeInterface;
 
-class Data extends BaseObject implements SerializeInterface
+class UserData extends BaseObject implements SerializeInterface
 {
 	Map<string> user = null;
 	

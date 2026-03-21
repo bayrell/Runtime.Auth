@@ -16,12 +16,12 @@
  *  limitations under the License.
  */
 
-namespace Runtime.Auth.Hook;
+namespace Runtime.Auth.Hooks;
 
 use Runtime.Method;
 use Runtime.Hooks.BaseHook;
 use Runtime.Auth.Api.LoginApi;
-use Runtime.Auth.Models.Data;
+use Runtime.Auth.Models.UserData;
 use Runtime.Auth.Models.UserSettings;
 use Runtime.Crypt.JWT;
 use Runtime.Web.Annotations.ApiMethod;
@@ -154,7 +154,7 @@ class AuthHook extends BaseHook
 		if (jwt and jwt.isCorrect())
 		{
 			container.layout.storage.backend.set(token_name, jwt);
-			container.layout.storage.set(token_name, new Data(jwt.data));
+			container.layout.storage.set(token_name, new UserData(jwt.data));
 		}
 	}
 	

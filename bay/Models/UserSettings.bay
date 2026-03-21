@@ -18,6 +18,7 @@
 
 namespace Runtime.Auth.Models;
 
+use Runtime.BaseLayout;
 use Runtime.BaseObject;
 use Runtime.SerializeInterface;
 use Runtime.Entity.Factory;
@@ -28,6 +29,7 @@ use Runtime.Auth.Components.LoginPage.LoginPageModel;
 use Runtime.Auth.Components.LogoutPage.LogoutPageModel;
 use Runtime.Auth.Database.User;
 use Runtime.Auth.Hook.AuthHook;
+use Runtime.Auth.Models.UserData;
 use Runtime.Web.BaseLayoutModel;
 use Runtime.Web.RouteInfo;
 use Runtime.Web.RouteModel;
@@ -48,6 +50,18 @@ class UserSettings extends BaseObject implements SerializeInterface
 	
 	
 	/**
+	 * Returns url name
+	 */
+	string getUrlName() => "auth";
+	
+	
+	/**
+	 * Returns hook name
+	 */
+	static string getHookName() => classof AuthHook;
+	
+	
+	/**
 	 * Returns token expires
 	 */
 	string getTokenExpires() => 30 * 24 * 60 * 60;
@@ -57,7 +71,7 @@ class UserSettings extends BaseObject implements SerializeInterface
 	 * Create hook
 	 */
 	static var hook() => new Hook(
-		classof AuthHook,
+		static::getHookName(),
 		{
 			"settings": rtl::newInstance(static::getClassName()),
 		}
@@ -115,7 +129,7 @@ class UserSettings extends BaseObject implements SerializeInterface
 	RouteInfo getLoginRoute() => new RouteModel
 	{
 		"uri": "/{lang}/login",
-		"name": "app:login",
+		"name": this.getUrlName() ~ ":login",
 		"model": this.getLoginPage(),
 		"model_params": this.getModelParams(),
 	};
@@ -127,10 +141,16 @@ class UserSettings extends BaseObject implements SerializeInterface
 	RouteInfo getLogoutRoute() => new RouteModel
 	{
 		"uri": "/{lang}/logout",
-		"name": "app:logout",
+		"name": this.getUrlName() ~ ":logout",
 		"model": this.getLogoutPage(),
 		"model_params": this.getModelParams(),
 	};
+	
+	
+	/**
+	 * Returns user data
+	 */
+	UserData getUserData(BaseLayout layout) => layout.get(this.getTokenName());
 	
 	
 	#ifdef BACKEND then
