@@ -147,6 +147,8 @@ class AuthHook extends BaseHook
 		string token_name = this.settings.getTokenName();
 		string jwt_algo = @.env(token_name ~ "_jwt_algo");
 		string jwt_secret_key = @.env(token_name ~ "_jwt_secret_key");
+		
+		if (not container.request.cookies) return;
 		string jwt_string = container.request.cookies.get(token_name);
 		
 		/* Decode JWT */
