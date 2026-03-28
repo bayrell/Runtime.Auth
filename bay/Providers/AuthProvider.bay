@@ -16,25 +16,34 @@
  *  limitations under the License.
  */
 
-namespace Runtime.Auth.Hooks;
+namespace Runtime.Auth.Providers;
 
 use Runtime.Method;
-use Runtime.Hooks.BaseHook;
+use Runtime.BaseProvider;
+use Runtime.Entity.Provider;
 use Runtime.Auth.Api.LoginApi;
 use Runtime.Auth.Models.UserData;
 use Runtime.Auth.Models.UserSettings;
 use Runtime.Crypt.JWT;
 use Runtime.Web.Annotations.ApiMethod;
-use Runtime.Web.Hooks.AppHook;
+use Runtime.Web.Hooks.AppHook as WebHook;
 use Runtime.Web.BaseApi;
 use Runtime.Web.RenderContainer;
 use Runtime.Web.RouteInfo;
 use Runtime.Web.RouteList;
+use Runtime.Web.RouteProvider;
 
 
-class AuthHook extends BaseHook
+class AuthProvider extends BaseProvider
 {
 	UserSettings settings = null;
+	bool enable_login = true;
+	
+	
+	/**
+	 * Returns settings name
+	 */
+	static string getSettingsName() => classof UserSettings;
 	
 	
 	/**
@@ -45,8 +54,26 @@ class AuthHook extends BaseHook
 		parent(params);
 		
 		if (params == null) return;
-		if (params.has("settings")) this.settings = params.get("settings");
+		if (params.has("settings"))
+		{
+			this.settings = params.get("settings");
+		}
 	}
+	
+	
+	/**
+	 * Create hook
+	 */
+	static var hook(string settings_name = "") =>
+		new Provider(
+			static::getClassName(), null,
+			{
+				"settings": rtl::newInstance(settings_name ?
+					settings_name : static::getSettingsName()
+				),
+			}
+		)
+	;
 	
 	
 	/**
@@ -54,11 +81,29 @@ class AuthHook extends BaseHook
 	 */
 	void register_hooks()
 	{
+		parent();
+		
 		#ifdef BACKEND then
-		this.register(AppHook::FIND_API, "findApi");
-		this.register(AppHook::ROUTE_BEFORE, "routeBefore");
-		this.register(AppHook::ROUTES_INIT, "routeInit");
+		this.register(WebHook::FIND_API, "findApi");
+		this.register(WebHook::ROUTE_BEFORE, "routeBefore");
+		this.register(WebHook::ROUTES_INIT, "routeInit");
 		#endif
+	}
+	
+	
+	/**
+	 * Disable login
+	 */
+	void disableLogin()
+	{
+		this.enable_login = false;
+		
+		string url_name = this.settings.getUrlName();
+		RouteProvider routes = @.provider(
+			classof RouteProvider
+		);
+		routes.removeRoute(url_name ~ ":login");
+		routes.removeRoute(url_name ~ ":logout");
 	}
 	
 	
@@ -74,6 +119,9 @@ class AuthHook extends BaseHook
 		
 		ApiMethod api = params.get("api");
 		if (api) return;
+		
+		/* If login is enable */
+		if (not this.enable_login) return;
 		
 		/* Setup login api */
 		if (api_name == this.settings.getApiName())

@@ -6,9 +6,9 @@
 		"Components/LoginPage/LoginPageModel.bay",
 		"Components/LogoutPage/LogoutPage.bay",
 		"Components/LogoutPage/LogoutPageModel.bay",
-		"Hooks/AuthHook.bay",
 		"Models/UserData.bay",
 		"Models/UserSettings.bay",
+		"Providers/AuthProvider.bay",
 		"ModuleDescription.bay"
 	],
 	"require":

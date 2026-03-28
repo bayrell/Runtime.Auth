@@ -22,13 +22,12 @@ use Runtime.BaseLayout;
 use Runtime.BaseObject;
 use Runtime.SerializeInterface;
 use Runtime.Entity.Factory;
-use Runtime.Entity.Hook;
+use Runtime.Entity.Provider;
 use Runtime.Auth.Api.LoginApi;
 use Runtime.Auth.Api.LogoutApi;
 use Runtime.Auth.Components.LoginPage.LoginPageModel;
 use Runtime.Auth.Components.LogoutPage.LogoutPageModel;
 use Runtime.Auth.Database.User;
-use Runtime.Auth.Hook.AuthHook;
 use Runtime.Auth.Models.UserData;
 use Runtime.Web.BaseLayoutModel;
 use Runtime.Web.RouteInfo;
@@ -56,26 +55,9 @@ class UserSettings extends BaseObject implements SerializeInterface
 	
 	
 	/**
-	 * Returns hook name
-	 */
-	static string getHookName() => classof AuthHook;
-	
-	
-	/**
 	 * Returns token expires
 	 */
 	string getTokenExpires() => 30 * 24 * 60 * 60;
-	
-	
-	/**
-	 * Create hook
-	 */
-	static var hook() => new Hook(
-		static::getHookName(),
-		{
-			"settings": rtl::newInstance(static::getClassName()),
-		}
-	);
 	
 	
 	/**
@@ -150,7 +132,8 @@ class UserSettings extends BaseObject implements SerializeInterface
 	/**
 	 * Returns user data
 	 */
-	UserData getUserData(BaseLayout layout) => layout.get(this.getTokenName());
+	UserData getUserData(BaseLayout layout) =>
+		layout.get(this.getTokenName());
 	
 	
 	#ifdef BACKEND then

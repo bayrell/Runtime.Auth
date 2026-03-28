@@ -39,8 +39,8 @@ add("Runtime.Auth.Components.LogoutPage.LogoutPageModel");
 add("Runtime.Auth.Database.User");
 add("Runtime.Auth.Database.Migrations.AuthMigration");
 
-/* Hooks */
-add("Runtime.Auth.Hooks.AuthHook");
+/* Providers */
+add("Runtime.Auth.Providers.AuthProvider");
 
 /* Middleware */
 add("Runtime.Auth.AuthMiddleware");
