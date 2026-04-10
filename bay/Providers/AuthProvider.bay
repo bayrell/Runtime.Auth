@@ -62,11 +62,17 @@ class AuthProvider extends BaseProvider
 	
 	
 	/**
+	 * Returns provider name
+	 */
+	static string getProviderName() => static::getClassName();
+	
+	
+	/**
 	 * Create hook
 	 */
 	static var hook(string settings_name = "") =>
 		new Provider(
-			static::getClassName(), null,
+			static::getProviderName(), static::getClassName(),
 			{
 				"settings": rtl::newInstance(settings_name ?
 					settings_name : static::getSettingsName()
