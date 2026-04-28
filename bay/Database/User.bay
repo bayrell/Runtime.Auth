@@ -74,9 +74,9 @@ class User extends Record
 	/**
 	 * Save
 	 */
-	async void save()
+	async void save(Map params = null)
 	{
-		await parent();
+		await parent(params);
 	}
 	
 	
