@@ -113,6 +113,16 @@ class AuthProvider extends BaseProvider
 	}
 	
 	
+	/**
+	 * Returns user data
+	 */
+	UserData getUserData(Map storage)
+	{
+		string token_name = this.settings.getTokenName();
+		return storage.get(token_name);
+	}
+	
+	
 	#ifdef BACKEND then
 	
 	/**
@@ -209,7 +219,7 @@ class AuthProvider extends BaseProvider
 		JWT jwt = JWT::decode(jwt_string, jwt_secret_key);
 		if (jwt and jwt.isCorrect())
 		{
-			container.layout.storage.backend.set(token_name, jwt);
+			container.layout.storage.backend.set(token_name, new UserData(jwt.data));
 			container.layout.storage.set(token_name, new UserData(jwt.data));
 		}
 	}
