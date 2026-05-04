@@ -62,7 +62,8 @@ class LoginPageModel extends BaseModel
 			this.user_settings = params.get("user_settings");
 			if (this.user_settings instanceof Map)
 			{
-				this.user_settings = this.filter("user_settings", this.user_settings);
+				this.user_settings = static::filter
+					("user_settings", this.user_settings);
 			}
 		}
 	}
