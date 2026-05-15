@@ -66,8 +66,8 @@ class User extends Record
 	 */
 	Map getTokenData() =>
 	{
-		"id": this.id,
-		"login": this.login,
+		"id": this.get("id"),
+		"login": this.get("login"),
 	};
 	
 	
@@ -83,18 +83,18 @@ class User extends Record
 	/**
 	 * Check password
 	 */
-	bool checkPassword(string password)
+	async bool checkPassword(string password)
 	{
-		return Password::verify(password, this.get("password"));
+		return await Password::verify(password, this.get("password"));
 	}
 	
 	
 	/**
 	 * Set new password
 	 */
-	void setPassword(string password)
+	async void setPassword(string password)
 	{
-		this.password = Password::createHash(password);
+		this.password = await Password::createHash(password);
 	}
 	
 	

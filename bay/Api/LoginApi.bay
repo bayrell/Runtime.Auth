@@ -121,7 +121,7 @@ class LoginApi extends BaseApi
 		}
 		
 		/* Check password */
-		if (not user.checkPassword(password))
+		if (not await user.checkPassword(password))
 		{
 			this.loginError();
 		}
