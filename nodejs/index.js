@@ -24,27 +24,3 @@ const add = rtl.add(__dirname, exports);
 
 /* Module Description */
 add("Runtime.Auth.ModuleDescription");
-
-/* API */
-add("Runtime.Auth.Api.LoginApi");
-add("Runtime.Auth.Api.LogoutApi");
-
-/* Components */
-add("Runtime.Auth.Components.LoginPage.LoginPage");
-add("Runtime.Auth.Components.LoginPage.LoginPageModel");
-add("Runtime.Auth.Components.LogoutPage.LogoutPage");
-add("Runtime.Auth.Components.LogoutPage.LogoutPageModel");
-
-/* Database */
-add("Runtime.Auth.Database.User");
-add("Runtime.Auth.Database.Migrations.AuthMigration");
-
-/* Providers */
-add("Runtime.Auth.Providers.AuthProvider");
-
-/* Middleware */
-add("Runtime.Auth.AuthMiddleware");
-
-/* Models */
-add("Runtime.Auth.Models.UserData");
-add("Runtime.Auth.Models.UserSettings");

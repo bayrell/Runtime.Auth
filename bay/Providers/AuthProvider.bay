@@ -91,7 +91,7 @@ class AuthProvider extends BaseProvider
 		
 		#ifdef BACKEND then
 		this.register(WebHook::FIND_API, "findApi");
-		this.register(WebHook::ROUTE_BEFORE, "routeBefore");
+		this.register(WebHook::ROUTE_BEFORE, "routeBefore", 0);
 		this.register(WebHook::ROUTES_INIT, "routeInit");
 		#endif
 	}

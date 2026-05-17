@@ -94,7 +94,8 @@ class User extends Record
 	 */
 	async void setPassword(string password)
 	{
-		this.password = await Password::createHash(password);
+		string password_hash = await Password::createHash(password);
+		this.set("password", password_hash);
 	}
 	
 	

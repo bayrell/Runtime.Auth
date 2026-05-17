@@ -18,6 +18,7 @@
 
 namespace Runtime.Auth;
 
+use Runtime.Method;
 use Runtime.Exceptions.ApiError;
 use Runtime.Exceptions.RuntimeException;
 use Runtime.Auth.UserSettings;
@@ -66,7 +67,8 @@ class AuthMiddleware extends Middleware
 		}
 		
 		/* Set user */
-		api.setUser(user_data);
+		Method setUser = method api.setUser;
+		if (setUser.exists()) api.setUser(user_data);
 	}
 	
 	
